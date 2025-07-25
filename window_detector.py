@@ -79,12 +79,21 @@ class WindowDetector:
             import win32con
             
             def enum_windows_callback(hwnd, windows):
-                if win32gui.IsWindowVisible(hwnd):
-                    window_text = win32gui.GetWindowText(hwnd)
-                    if "Uma Musume" in window_text or "Pretty Derby" in window_text:
+                if not win32gui.IsWindowVisible(hwnd):
+                    return True
+                
+                window_text = win32gui.GetWindowText(hwnd)
+                if any(x in window_text.lower() for x in ["template_creator", "window_detector"]):
+                    return True
+                normalized_text = window_text.lower().replace(" ", "")
+                game_titles = ["umamusume", "umamusumeprettyderby"]
+                if normalized_text in game_titles:
+                    try:
                         rect = win32gui.GetWindowRect(hwnd)
                         x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
                         windows.append((x, y, w, h))
+                    except Exception as e:
+                        logger.error(f"Error getting window rect: {e}")
                 return True
             
             windows = []
